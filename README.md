@@ -1,19 +1,30 @@
-Publier les derniers graphiques concernant la Covid-19 en France chaque soir sur Discord ;
-et publier également des informations de quartier à fréquence régulière.
+# Sommaire
+* [Graphiques sur la Covid-19](#graphiques-sur-la-covid-19)
+* [Données du quartier](#données-du-quartier)
 
-Covid-19
+# Graphiques sur la Covid-19
 
-Gif avec rotation toutes les 7 secondes
+* Ce projet présente du code en Python destiné à publier les données de la Covid-19 tous les soirs sur Discord.
+* Le code tend au respect du patron de conception MVC (Modèle-Vue-Contrôleur).
+
+## Vaccination
 ![VaccinAge](https://i.imgur.com/0ZTKtsE.gif)
+* Zones : France, Île-de-France, Hauts-de-Seine.
+* Gif avec rotation toutes les 7 secondes.
 
-
+## Hospitalisations
 ![Hopital92](https://i.imgur.com/daaFDwX.png)
 
 ![HopitalIDF](https://i.imgur.com/rwuHma8.png)
 
 ![HopitalFR](https://i.imgur.com/yMqdxlA.png)
 
-Quartier
+
+# Données du quartier
+
+* Présentation des informations de quartier à publication horaire ou quotidienne.
+* Le code correspondant n'est pas publié.
+* Les informations proviennent entre autres d'API.
 
 ![Trafic](https://user-images.githubusercontent.com/76781017/137624420-30508cc4-6eac-4600-af93-0f0f2b3ae8cd.png)
 
