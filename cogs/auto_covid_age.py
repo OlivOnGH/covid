@@ -10,7 +10,8 @@ from functions._local_datetime import local_dt
 from functions._timer import timer
 from model import covid_age
 from view import views_embed
-from settings import SALON_INFO_COVID, MESSAGES_IDS_COVID, ROLE_CS, PANDAS_SPF_SPECS, LISTE_DEPARTEMENTS_INT_STRF
+from settings import SALON_INFO_COVID, MESSAGES_IDS_COVID, ID_BOT, ROLE_CS, PANDAS_SPF_SPECS, LISTE_DEPARTEMENTS_INT_STRF
+# PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
 
 DESCRIPTION = 'actualisé vers 20h-23h\n(du lundi au vendredi)'
@@ -19,10 +20,7 @@ PATH_DIR =    covid_age.PATH_DIR
 
 
 @dataclass()
-class AgeCtrl:
-
-    bot: object = None
-    liste_obj = list()  # Chemins pour le gif
+class AgeCtrl():
 
     async def main(self, key, val) -> None:
         """Génère les DF et les objets, puis lance le traitement des DF et des graphiques."""
@@ -82,12 +80,11 @@ class AgeCtrl:
 
     async def publi_embed(self, image_path) -> None:
         """Edition du message."""
-        field = [('\u200b', f'Gif avec rotation toutes les {self.ROTATION_TPS_GIF} secondes.', False),
-                 ('\u200b',
-                  (f'Envoyez `!{self.NOM_COMMANDE} <numéro_département>` dans un salon ou directement à moi '
-                   f'pour avoir des infos concernant un département :)\n'
-                   f'Exemple : `!{self.NOM_COMMANDE} 75`'),
-                  False)]
+        field = [('🗺️ Vous souhaitez un graphique pour un autre département ? Envoyez :',
+                  (f'```!{self.NOM_COMMANDE} <numéro_département>``` dans un salon ou directement à <@{ID_BOT}> :ok_hand:\n'
+                   f'Exemple : ```!{self.NOM_COMMANDE} 75```'),
+                  False),
+                 ('⌛ Alternance', f'Gif avec alternance toutes les {self.ROTATION_TPS_GIF} secondes.', False)]
         embed = views_embed.EmbedView(bot=self.bot,
                                       salon_id=SALON_INFO_COVID,
                                       message_id=self.MESSAGE_ID,
@@ -151,7 +148,7 @@ class AgeCtrl:
             df = pd.read_csv(url, sep=';', parse_dates=['jour'])
 
             # On détermine si le jour des données du CSV (=la veille) correspond au jour recherché (=la veille).
-            date_attendue = (dt_local_time - datetime.timedelta(days=1)).date()
+            date_attendue = (dt_local_time - datetime.timedelta(days=self.DAYS_DELTA)).date()
             date_obtenue = datetime.datetime.strptime(str(df['jour'].max()),
                                                       '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d')  # Jour issu du CSV
 
@@ -189,47 +186,63 @@ class AgeCtrl:
 @dataclass()
 class VaccinCtrl(commands.Cog, AgeCtrl):
 
-    TITRE_COURT = 'Vaccin_Age'
-    TITRE_LONG = 'Vaccination par âge en France · IDF · 92'
+    bot: discord
+
+    TITRE_LONG = 'Vaccination par âge : en France · IDF · 92'  # Nom de l'embed
+    TITRE_COURT = 'Vaccin_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
+    GIF_NOM = 'Vaccination'  # Nom de l'image Gif
     MESSAGE_ID = MESSAGES_IDS_COVID[6]
     MINUTES_VERIF = {20, 50}
     ROTATION_TPS_GIF = 10  # en secondes
     COULEUR_HEX = 0x70E6E4
     MODELE = covid_age.VaccinModele
-    NOM_COMMANDE = 'vaccin_age'
+    NOM_COMMANDE = 'vaccin'
+    DAYS_DELTA = 1
     DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/54dd5f8d-1e2e-4ccb-8fb8-eac68245befd', 'FR', '#70E6E4', 'en', 'France'),
                 'reg': ('https://www.data.gouv.fr/fr/datasets/r/c3ccc72a-a945-494b-b98d-09f48aa25337', 11, '#c7faff', 'en', 'Île-de-France'),
                 'dep': ('https://www.data.gouv.fr/fr/datasets/r/83cbbdb9-23cb-455e-8231-69fc25d58111', 92, '#E3FFFF', 'dans les', 'Hauts-de-Seine')}
     dict_csv = DICT_CSV
-    CLAGE = 'clage_vacsi'
-    GIF_NOM = 'Vaccination'
+    CLAGE = 'clage_vacsi'  # Colonne qui contient le classement par tranche d'âges
 
-    @commands.command(brief='Vaccination par âge contre la Covid-19')
-    async def vaccin_age(self, ctx, zone=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
+    liste_obj = list()  # Chemins pour le gif
+
+    @commands.command(brief='Vaccination par âge contre la Covid-19', aliases=['vaccin_age', 'vaccination'])
+    async def vaccin(self, ctx, zone=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
         """Lance le programme manuellement via une entrée utilisateur sur Discord."""
         await self.commande_utilisateur(ctx, zone)
+
+    async def test(self):
+        tuple_dpt = (self.DICT_CSV[self.criteres[0]][0], self.criteres[1], '#ebfffe', 'dans', str(self.criteres[1]))
+        image = await self.main(self.criteres[0], tuple_dpt)
+        # Todo : Ajouter limite de requêtes
+        return image
 
 
 @dataclass()
 class PositiviteCtrl(commands.Cog, AgeCtrl):
 
-    TITRE_COURT = 'Positivite_Age'
-    TITRE_LONG = 'Personnes testées et personnes positives par âge en France · IDF · 92'
+    bot: discord
+
+    TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : en France · IDF · 92'  # Nom de l'embed
+    TITRE_COURT = 'Positivite_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
+    GIF_NOM = 'Positivite'  # Nom de l'image Gif
     MESSAGE_ID = MESSAGES_IDS_COVID[7]
     MINUTES_VERIF = {22, 52}
     ROTATION_TPS_GIF = 10  # en secondes
     COULEUR_HEX = 0xdf03fc
     MODELE = covid_age.PositiviteModele
-    NOM_COMMANDE = 'positivite_age'
-    DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/dd0de5d9-b5a5-4503-930a-7b08dc0adc7c', 'FR', '#fd87ff', 'en', 'France'),              # sp-pos-quot
-                'reg': ('https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01', 11, '#feb8ff', 'en', 'Île-de-France'),         # sp-pos-quot
-                'dep': ('https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675', 92, '#fed6ff', 'dans les', 'Hauts-de-Seine')}  # sp-pos-quot
+    NOM_COMMANDE = 'positif'
+    DAYS_DELTA = 3
+    DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/dd0de5d9-b5a5-4503-930a-7b08dc0adc7c', 'FR', '#feb8ff', 'en', 'France'),              # sp-pos-quot
+                'reg': ('https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01', 11, '#fed6ff', 'en', 'Île-de-France'),         # sp-pos-quot
+                'dep': ('https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675', 92, '#fdf2ff', 'dans les', 'Hauts-de-Seine')}  # sp-pos-quot
     dict_csv = DICT_CSV
-    CLAGE = 'cl_age90'
-    GIF_NOM = 'Positivite'
+    CLAGE = 'cl_age90'  # Colonne qui contient le classement par tranche d'âges
 
-    @commands.command(brief='Tests positifs par âge contre la Covid-19')
-    async def positivite_age(self, ctx, zone=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
+    liste_obj = list()  # Chemins pour le gif
+
+    @commands.command(brief='Tests positifs quotidiens par âge contre la Covid-19', aliases=['positifs', 'positivite', 'positivite_age'])
+    async def positif(self, ctx, zone=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
         """Lance le programme manuellement via une entrée utilisateur sur Discord."""
         await self.commande_utilisateur(ctx, zone)
 
@@ -243,20 +256,21 @@ if __name__ == '__main__':
 
     print(Path(__file__).stem)
 
+
     @dataclass()
     class TestCtrl(AgeCtrl):
 
         TITRE_COURT = 'Positivite_Age'
-        TITRE_LONG = 'Personnes testées et personnes positives par âge en France · IDF · 92'
+        TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : en France · IDF · 92'
         MESSAGE_ID = MESSAGES_IDS_COVID[7]
         MINUTES_VERIF = {22, 52}
         ROTATION_TPS_GIF = 10  # en secondes
         COULEUR_HEX = 0xdf03fc
         MODELE = covid_age.PositiviteModele
-        NOM_COMMANDE = 'positivite_age'
-        DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/dd0de5d9-b5a5-4503-930a-7b08dc0adc7c', 'FR', '#fd87ff', 'en', 'France'),              # sp-pos-quot
-                    'reg': ('https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01', 11, '#feb8ff', 'en', 'Île-de-France'),         # sp-pos-quot
-                    'dep': ('https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675', 92, '#fed6ff', 'dans les', 'Hauts-de-Seine')}  # sp-pos-quot
+        NOM_COMMANDE = 'positif'
+        DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/dd0de5d9-b5a5-4503-930a-7b08dc0adc7c', 'FR', '#f5d1ff', 'en', 'France'),              # sp-pos-quot
+                    'reg': ('https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01', 11, '#f9e3ff', 'en', 'Île-de-France'),         # sp-pos-quot
+                    'dep': ('https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675', 92, '#fcf0ff', 'dans les', 'Hauts-de-Seine')}  # sp-pos-quot
         dict_csv = DICT_CSV
         CLAGE = 'cl_age90'
         GIF_NOM = 'Positivite'
@@ -267,12 +281,12 @@ if __name__ == '__main__':
         async def test(self):
             tuple_dpt = (self.DICT_CSV[self.criteres[0]][0], self.criteres[1], '#ebfffe', 'dans', str(self.criteres[1]))
             image = await self.main(self.criteres[0], tuple_dpt)
-            # Todo : Mettre dans la vue, ajouter limite de temps
-            print(image)
+            # Todo : Ajouter limite de requêtes
             return image
 
 
     test_fr = TestCtrl(criteres=('fra', 'FR'))
     asyncio.run(test_fr.test())
+
     test_92 = TestCtrl(criteres=('dep', '92'))
     asyncio.run(test_92.test())
