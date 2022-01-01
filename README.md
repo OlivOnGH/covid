@@ -5,20 +5,24 @@
 # Graphiques sur la Covid-19
 
 * Ce projet présente du code en Python destiné à publier les données de la Covid-19 tous les soirs sur Discord.
-* Le code tend au respect du patron de conception MVC (Modèle-Vue-Contrôleur).
+* Le code tend au respect du patron de conception MVC (Modèle-Vue-Contrôleur). Cependant, une partie de la vue est combinée avec le contrôleur à cause de contraintes liées à la bibliothèque `discord.py`.
 
 ## Vaccination
-![VaccinAge](https://i.imgur.com/0ZTKtsE.gif)
+![VaccinAge](https://i.imgur.com/b4uOpTe.gif)
 * Zones : France, Île-de-France, Hauts-de-Seine.
-* Gif avec rotation toutes les 7 secondes.
+* Gif avec rotation toutes les 10 secondes.
+
+## Tests positifs
+![PositifAge](https://i.imgur.com/LU3Abkr.gif)
+* Zones : France, Île-de-France, Hauts-de-Seine.
+* Gif avec rotation toutes les 10 secondes.
 
 ## Hospitalisations
-![Hopital92](https://i.imgur.com/daaFDwX.png)
+![Hopital92](https://user-images.githubusercontent.com/76781017/147862069-25574da8-3681-4a8a-840b-fd7ae21f6495.png)
 
-![HopitalIDF](https://i.imgur.com/rwuHma8.png)
+![HopitalIDF](https://user-images.githubusercontent.com/76781017/147862066-2a1d9b2a-ac11-4418-bf99-f0c984e57842.png)
 
-![HopitalFR](https://i.imgur.com/yMqdxlA.png)
-
+![HopitalFR](https://user-images.githubusercontent.com/76781017/147862061-6e56d954-67b5-45d3-8b45-a4513627ba1e.png)
 
 # Données du quartier
 
