@@ -11,7 +11,6 @@ import matplotlib.dates as mdates
 from settings import locale, MESSAGES_IDS_COVID, PANDAS_SPF_SPECS
 # PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
-
 PATH_DIR = os.getcwd() if __name__ == '__main__' else Path('./data/temp/vaccination/âge')
 
 
@@ -128,7 +127,7 @@ class AgeModele:
                     if isinstance(self.SET_YLIM, int):
                         ax.set_ylim((0, self.SET_YLIM))
                     else:
-                        ylim = df[self.SET_YLIM].max() // 4  # Placer la limite à 25% du maximum total
+                        ylim = df[self.SET_YLIM].max() // 3  # Placer la limite à 1/3 du maximum total
                         ax.set_ylim((0, ylim))
 
                 ax.set_xlim(pd.Timestamp(df['jour'].min()), pd.Timestamp(df['jour'].max()))
