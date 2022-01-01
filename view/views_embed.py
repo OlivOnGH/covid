@@ -44,7 +44,7 @@ class EmbedView:
                                   url=self.url,
                                   color=self.color_hex)
             if self.fields:  # [(Name, Value, True/False)]
-                [embed.add_field(name=f'**{n}**', value=v, inline=i) for n, v, i in self.fields]
+                [embed.add_field(name=f'**{n}**', value=f'{v}\n\u200b', inline=i) for n, v, i in self.fields]
             embed.set_footer(text=self.footer)
             embed.timestamp = await local_dt()
             return embed
