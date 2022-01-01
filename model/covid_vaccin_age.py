@@ -1,4 +1,5 @@
 import os, sys
+from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -11,11 +12,12 @@ import matplotlib.dates as mdates
 from settings import locale, MESSAGES_IDS_COVID, PANDAS_SPF_SPECS
 # PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
+
 PATH_DIR = os.getcwd() if __name__ == '__main__' else Path('./data/temp/vaccination/âge')
 
 
 @dataclass()
-class AgeModele:
+class AgeModele(ABC):
     df_main:      object
     color_str:    str
     particule:    str
@@ -127,7 +129,7 @@ class AgeModele:
                     if isinstance(self.SET_YLIM, int):
                         ax.set_ylim((0, self.SET_YLIM))
                     else:
-                        ylim = df[self.SET_YLIM].max() // 3  # Placer la limite à 1/3 du maximum total
+                        ylim = df[self.SET_YLIM].max() // 3  # Limite à 1/3 du max total pour les autres plots
                         ax.set_ylim((0, ylim))
 
                 ax.set_xlim(pd.Timestamp(df['jour'].min()), pd.Timestamp(df['jour'].max()))
@@ -181,12 +183,15 @@ class AgeModele:
                        framealpha=1)
 
         # Nom du graphique et enregistrement
-        image_path_dir = PATH_DIR  # os.getcwd()
+        if not os.path.exists(image_path_dir := PATH_DIR):
+            try:                      os.mkdir(image_path_dir)
+            except FileNotFoundError: image_path_dir = os.getcwd()
         fichier_graphique = f'{self.TITRE_COURT} - {self.localisation}.png'
         self.__setattr__('image_path', os.path.join(image_path_dir, fichier_graphique))
         # Créer le fichier et le dossier s'ils n'existent pas
-        if not os.path.exists(image_path_dir):  os.mkdir(image_path_dir)
+
         if not os.path.exists(self.image_path): open(self.image_path, 'x')
+
         plt.savefig(self.image_path, bbox_inches='tight')
 
         return self.image_path
@@ -202,8 +207,7 @@ class AgeModele:
 
 class VaccinModele(AgeModele):
 
-    TITRE_COURT = 'Vaccin_Age'
-    TITRE_LONG = 'Vaccination par âge en France · IDF · 92'
+    TITRE_COURT = 'Vaccin_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
     TITRE_GRAPH = 'Couverture vaccinale par tranche d\'âges'
     MESSAGE_ID = MESSAGES_IDS_COVID[6]
     DESCRIPTION = 'actualisé vers 20h-23h\n(du lundi au vendredi)'
@@ -240,18 +244,17 @@ class VaccinModele(AgeModele):
 
 class PositiviteModele(AgeModele):
 
-    TITRE_COURT = 'Positivite_Age'
-    TITRE_LONG = 'Tests positifs par âge en France · IDF · 92'
-    TITRE_GRAPH = 'Tests positifs par tranche d\'âges'
+    TITRE_COURT = 'Positivite_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
+    TITRE_GRAPH = 'Tests positifs quotidiens par tranche d\'âges'
     MESSAGE_ID = MESSAGES_IDS_COVID[6]
-    DESCRIPTION = 'actualisé vers 20h-23h\n(du lundi au vendredi)'
+    DESCRIPTION = 'actualisé vers 20h-23h'
 
     FIGSIZE, NROWS, NCOLS = (14, 8), 3, 4
     SET_YLIM, SET_YLIM_1ER_PLOT, SET_YLIM_AUTRES_PLOTS = 'T', False, True
     FMT_POURCENTAGE = False
     PIED_PAGE_X = 0
     PIED_PAGE_Y = 0
-    PIED_PAGE_TEXTE = ('NB : L\'échelle des graphiques par tranche d\'âges est différente de celle tous âges confondus.\n\n'
+    PIED_PAGE_TEXTE = ('NB : L\'échelle des graphiques par tranche d\'âges correspond à 1/3 de celle tous âges confondus.\n\n'
                        'Source : Santé publique France\n')
     DICT_MAIN = {'P': {'titre':     'P',
                        'couleur':   'red',
@@ -261,7 +264,7 @@ class PositiviteModele(AgeModele):
                        },
                  'T': {'titre':     'T',
                        'couleur':   'blue',
-                       'linestyle': '--',
+                       'linestyle': '-',
                        'label':     'Personnes testées',
                        'xytext':    (3, 3)}
                  }
@@ -282,7 +285,7 @@ if __name__ == '__main__':
 
     # Positifs aux tests
     URL_DF = 'https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675'
-    df = pd.read_csv(URL_DF, sinfer_datetime_format=True, **PANDAS_SPF_SPECS)
+    df = pd.read_csv(URL_DF, infer_datetime_format=True, **PANDAS_SPF_SPECS)
     df = df[df['dep'] == '92']
-    positivite = PositiviteModele(df, '#fed6ff', 'en', 'France')
+    positivite = PositiviteModele(df, '#fed6ff', 'dans les', 'Hauts-de-Seine')
     asyncio.run(positivite())
