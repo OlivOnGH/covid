@@ -1,4 +1,4 @@
-import datetime, imageio, os, sys
+import asyncio, datetime, imageio, os, sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,7 +40,10 @@ class AgeCtrl:
         df = df.astype(dict_types, copy=False)
 
         # Filtrer sur les seules données utilisées
-        zone_num = int(val[1]) if str(val[1]).isnumeric else str(val[1])
+        try:
+            zone_num = int(val[1]) if str(val[1]).isnumeric else str(val[1])
+        except ValueError as val_err:
+            zone_num = val[1]  # 'fra'
         # Un numéro de département peut être considéré comme :str: dans certains DF, et :int: dans d'autres.
         df = df[df[key].isin({str(zone_num), zone_num})]
         df.drop(df[df['jour'] <= pd.Timestamp((datetime.datetime.now() - datetime.timedelta(days=60)))].index, inplace=True)
@@ -79,7 +82,12 @@ class AgeCtrl:
 
     async def publi_embed(self, image_path) -> None:
         """Edition du message."""
-        field = [('\u200b', f'Gif avec rotation toutes les {self.ROTATION_TPS_GIF} secondes.', False)]
+        field = [('\u200b', f'Gif avec rotation toutes les {self.ROTATION_TPS_GIF} secondes.', False),
+                 ('\u200b',
+                  (f'Envoyez `!{self.NOM_COMMANDE} <numéro_département>` dans un salon ou directement à moi '
+                   f'pour avoir des infos concernant un département :)\n'
+                   f'Exemple : `!{self.NOM_COMMANDE} 75`'),
+                  False)]
         embed = views_embed.EmbedView(bot=self.bot,
                                       salon_id=SALON_INFO_COVID,
                                       message_id=self.MESSAGE_ID,
@@ -213,9 +221,9 @@ class PositiviteCtrl(commands.Cog, AgeCtrl):
     COULEUR_HEX = 0xdf03fc
     MODELE = covid_age.PositiviteModele
     NOM_COMMANDE = 'positivite_age'
-    DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/57d44bd6-c9fd-424f-9a72-7834454f9e3c', 'FR', '#fd87ff', 'en', 'France'),
-                'reg': ('https://www.data.gouv.fr/fr/datasets/r/ad09241e-52fa-4be8-8298-e5760b43cae2', 11, '#feb8ff', 'en', 'Île-de-France'),
-                'dep': ('https://www.data.gouv.fr/fr/datasets/r/19a91d64-3cd3-42fc-9943-d635491a4d76', 92, '#fed6ff', 'dans les', 'Hauts-de-Seine')}
+    DICT_CSV = {'fra': ('https://www.data.gouv.fr/fr/datasets/r/dd0de5d9-b5a5-4503-930a-7b08dc0adc7c', 'FR', '#fd87ff', 'en', 'France'),              # sp-pos-quot
+                'reg': ('https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01', 11, '#feb8ff', 'en', 'Île-de-France'),         # sp-pos-quot
+                'dep': ('https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675', 92, '#fed6ff', 'dans les', 'Hauts-de-Seine')}  # sp-pos-quot
     dict_csv = DICT_CSV
     CLAGE = 'cl_age90'
     GIF_NOM = 'Positivite'
@@ -232,11 +240,12 @@ def setup(bot):
 
 
 if __name__ == '__main__':
-    print(Path(__file__).stem)
 
+    print(Path(__file__).stem)
 
     @dataclass()
     class TestCtrl(AgeCtrl):
+
         TITRE_COURT = 'Positivite_Age'
         TITRE_LONG = 'Personnes testées et personnes positives par âge en France · IDF · 92'
         MESSAGE_ID = MESSAGES_IDS_COVID[7]
@@ -252,14 +261,18 @@ if __name__ == '__main__':
         CLAGE = 'cl_age90'
         GIF_NOM = 'Positivite'
 
+        def __init__(self, criteres):
+            self.criteres = criteres
+
         async def test(self):
-            tuple_dpt = (self.DICT_CSV['dep'][0], '92', '#ebfffe', 'dans', str('92'))
-            image = await self.main('dep', tuple_dpt)
+            tuple_dpt = (self.DICT_CSV[self.criteres[0]][0], self.criteres[1], '#ebfffe', 'dans', str(self.criteres[1]))
+            image = await self.main(self.criteres[0], tuple_dpt)
             # Todo : Mettre dans la vue, ajouter limite de temps
             print(image)
             return image
 
-    test = TestCtrl()
-    import asyncio
-    asyncio.run(test.test())
 
+    test_fr = TestCtrl(criteres=('fra', 'FR'))
+    asyncio.run(test_fr.test())
+    test_92 = TestCtrl(criteres=('dep', '92'))
+    asyncio.run(test_92.test())
