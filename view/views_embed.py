@@ -1,6 +1,5 @@
-"""Ce module est une bibliothèque d'enveloppe (wrapper) autour de la bibliothèque discord.py.
-Lors de la transition depuis l'obsolète discord.py vers une nouvelle bibliothèque,
-la transition pourrait ainsi être facilitée.
+"""Ce module d'enveloppe (wrapper) facilite l'utilisation de la bibliothèque discord.py 
+et la migration ultérieure vers une nouvelle bibliothèque.
 """
 
 
