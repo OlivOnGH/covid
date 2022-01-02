@@ -59,6 +59,8 @@ class AgeCtrl():
         return image
 
     async def main_multiples(self) -> None:
+        # Réinitialisation de la liste
+        self.liste_obj = list()
         for key, val in self.dict_csv.items():
             image = await self.main(key, val)
             # Ajout à la liste des images PNG en vue de générer le Gif.
@@ -224,7 +226,7 @@ class AgeCtrl():
 @dataclass()
 class VaccinCtrl(commands.Cog, AgeCtrl):
 
-    bot: discord
+    bot: object
 
     TITRE_LONG = 'Vaccination par âge : France · IDF · 92'  # Nom de l'embed
     TITRE_COURT = 'Vaccin_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
@@ -260,7 +262,7 @@ class VaccinCtrl(commands.Cog, AgeCtrl):
 @dataclass()
 class PositiviteCtrl(commands.Cog, AgeCtrl):
 
-    bot: discord
+    bot: object
 
     TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : France · IDF · 92'  # Nom de l'embed
     TITRE_COURT = 'Positivite_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
