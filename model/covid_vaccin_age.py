@@ -185,7 +185,7 @@ class AgeModele(ABC):
         # Nom du graphique et enregistrement
         if not os.path.exists(image_path_dir := PATH_DIR):
             try:                      os.mkdir(image_path_dir)
-            except FileNotFoundError: image_path_dir = os.getcwd()
+            except FileNotFoundError: image_path_dir = os.getcwd()  # FileNotFoundError depuis le cogs sur Windows
         fichier_graphique = f'{self.TITRE_COURT} - {self.localisation}.png'
         self.__setattr__('image_path', os.path.join(image_path_dir, fichier_graphique))
         # Créer le fichier et le dossier s'ils n'existent pas
@@ -256,17 +256,16 @@ class PositiviteModele(AgeModele):
     PIED_PAGE_Y = 0
     PIED_PAGE_TEXTE = ('NB : L\'échelle des graphiques par tranche d\'âges correspond à 1/3 de celle tous âges confondus.\n\n'
                        'Source : Santé publique France\n')
-    DICT_MAIN = {'P': {'titre':     'P',
-                       'couleur':   'red',
-                       'linestyle': '-',
-                       'label':     'Personnes positives',
-                       'xytext':    (3, -7)
-                       },
-                 'T': {'titre':     'T',
+    DICT_MAIN = {'T': {'titre':     'T',
                        'couleur':   'blue',
                        'linestyle': '-',
                        'label':     'Personnes testées',
-                       'xytext':    (3, 3)}
+                       'xytext':    (3, 3)},
+                 'P': {'titre': 'P',
+                       'couleur': 'red',
+                       'linestyle': '-',
+                       'label': 'Personnes positives',
+                       'xytext': (3, -7)},
                  }
     CLAGE = 'cl_age90'
 
