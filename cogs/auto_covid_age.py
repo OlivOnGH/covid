@@ -2,14 +2,13 @@ import asyncio, datetime, imageio, os, sys
 from dataclasses import dataclass
 from pathlib import Path
 
-import discord
 from discord.ext import commands
 import pandas as pd
 
 from functions._local_datetime import local_dt
 from functions._timer import timer
 from model import covid_age
-from view import views_embed
+from view import views_embed as ve
 from settings import SALON_INFO_COVID, MESSAGES_IDS_COVID, ID_BOT, ROLE_CS, PANDAS_SPF_SPECS, LISTE_DEPARTEMENTS_INT_STRF
 # PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
@@ -23,7 +22,12 @@ ADMIN_KEYWORD = 'ADMIN'
 class AgeCtrl():
 
     async def main(self, key, val) -> None:
-        """Génère les DF et les objets, puis lance le traitement des DF et des graphiques."""
+        """Génère les DF et les objets, puis lance le traitement des DF et des graphiques.
+
+        Args:
+            key (str) : Clé dans DICT_CSV, ou string si cela vient d'une commande utilisateur.
+            val (tuple) : Dépend de key, et peut avoir un format similaire à DICT_CSV[key].
+        """
 
         df = pd.read_csv(val[0], **PANDAS_SPF_SPECS)
 
@@ -80,7 +84,7 @@ class AgeCtrl():
 
     async def publi_embed(self, image_path) -> None:
         """Edition du message."""
-        field = [(f'🗺️ Vous souhaitez un graphique pour un autre département ? Envoyez dans un salon ou directement à',
+        field = [(f'🗺️ Vous souhaitez un graphique pour un autre département ?\nEnvoyez dans un salon ou par message direct à',
                   (f'<@{ID_BOT}> :ok_hand: ```!{self.NOM_COMMANDE} <numéro_département>``` \n'
                    f'Exemple : ```!{self.NOM_COMMANDE} 75```'
                    f'ou pour la France : ```!{self.NOM_COMMANDE}```'),
@@ -88,17 +92,17 @@ class AgeCtrl():
                  ('⌛ Alternance géographique ici',
                   f'Toutes les {self.ROTATION_TPS_GIF} secondes.',
                   False)]
-        embed = views_embed.EmbedView(bot=self.bot,
-                                      salon_id=SALON_INFO_COVID,
-                                      message_id=self.MESSAGE_ID,
-                                      title=self.TITRE_LONG,
-                                      description=self.DESCRIPTION,
-                                      fields=field,
-                                      url=URL,
-                                      footer=f"Données du {self.jour}\nSanté publique France",
-                                      image_path=image_path,
-                                      color_hex=self.COULEUR_HEX)
-        await embed.edit(); del embed; await asyncio.sleep(60 * 30)
+        await ve.embed_edit_gc(bot=self.bot,
+                               salon_id=SALON_INFO_COVID,
+                               message_id=self.MESSAGE_ID,
+                               title=self.TITRE_LONG,
+                               description=self.DESCRIPTION,
+                               fields=field,
+                               url=URL,
+                               footer=f"Données du {self.jour}\nSanté publique France",
+                               image_path=image_path,
+                               color_hex=self.COULEUR_HEX)
+        await asyncio.sleep(60 * 30)
 
     async def launch_main_embed(self) -> None:
         """Créer les PNG puis le Gif."""
@@ -112,19 +116,20 @@ class AgeCtrl():
         """Lance le programme manuellement via une entrée utilisateur sur Discord.
 
                 Args:
-                    zone (:int:92, optionnel): Correspond au département. None par défaut.
-                    None génère un Gif dans le salon dédié à la Covid-19,
-                    tandis que zone(:int:) génère un PNG envoyé à l'utilisateur.
+                    ctx (discord) : Référence au contexte du message entré par l'utilisateur.
+                    zone (int:92, optionnel) : Correspond au département. None par défaut.
+                                               None génère un Gif dans le salon dédié à la Covid-19,
+                                               tandis que zone(:int:) génère un PNG envoyé à l'utilisateur.
 
                 Raises:
-                    ValueError: Mauvais numéro de département.
+                    ValueError : Mauvais numéro de département.
 
                 Note:
                     La commande utilisateur est le nom de la fonction, pas d'alias ici.
                 """
         zone = str(zone).upper()
         try:
-            if zone == ADMIN_KEYWORD and discord.utils.get(ctx.author.roles, id=ROLE_CS):
+            if zone == ADMIN_KEYWORD and ve.verif_droit(ctx, ROLE_CS):
                 await self.launch_main_embed()
 
             else:
@@ -142,27 +147,25 @@ class AgeCtrl():
                 image = await self.main(zone_lettres, zone_tuple)
 
                 # Todo : Ajouter limite de temps
-                embed = views_embed.EmbedView(bot=self.bot,
-                                              ctx=ctx,
-                                              title=f'!{self.NOM_COMMANDE}',
-                                              fields=[('\u200b', contenu, False)],
-                                              url=URL,
-                                              footer=f"Données du {self.jour}\nSanté publique France",
-                                              color_hex=self.COULEUR_HEX,
-                                              file=(image, f'{self.TITRE_COURT}-{zone}.png'))
-                await embed.send(); del embed
+                await ve.embed_send_gc(bot=self.bot,
+                                       ctx=ctx,
+                                       title=f'!{self.NOM_COMMANDE}',
+                                       fields=[('\u200b', contenu, False)],
+                                       url=URL,
+                                       footer=f"Données du {self.jour}\nSanté publique France",
+                                       color_hex=self.COULEUR_HEX,
+                                       file=(image, f'{self.TITRE_COURT}-{zone}.png'))
 
                 # Todo : Logs anonymes
                 from settings import SALON_TEST_ADMIN
-                embed = views_embed.EmbedView(bot=self.bot,
-                                              salon_id=SALON_TEST_ADMIN,
-                                              title=f'!{self.NOM_COMMANDE}',
-                                              fields=[('\u200b', contenu, False)],
-                                              url=URL,
-                                              footer=f"Données du {self.jour}\nSanté publique France",
-                                              color_hex=self.COULEUR_HEX,
-                                              file=(image, f'{self.TITRE_COURT}-{zone}.png'))
-                await embed.send(); del embed
+                await ve.embed_send_gc(bot=self.bot,
+                                       salon_id=SALON_TEST_ADMIN,
+                                       title=f'!{self.NOM_COMMANDE}',
+                                       fields=[('\u200b', contenu, False)],
+                                       url=URL,
+                                       footer=f"Données du {self.jour}\nSanté publique France",
+                                       color_hex=self.COULEUR_HEX,
+                                       file=(image, f'{self.TITRE_COURT}-{zone}.png'))
 
         except ValueError:
             raise ValueError(('La zone doit correspondre au numéro du département souhaité.'
@@ -202,7 +205,7 @@ class AgeCtrl():
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        '''Envoi du nombre de vaccinés dans le salon # transport et infos.'''
+        '''Envoi du nombre de vaccinés dans le salon #covid.'''
 
         running = True
         while running:
@@ -243,8 +246,14 @@ class VaccinCtrl(commands.Cog, AgeCtrl):
     liste_obj = list()  # Chemins pour le gif
 
     @commands.command(brief='Vaccination par âge contre la Covid-19', aliases=['vaccin_age', 'vaccination'])
-    async def vaccin(self, ctx, zone=None, *, content=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
-        """Lance le programme manuellement via une entrée utilisateur sur Discord."""
+    async def vaccin(self, ctx, zone=None, *, args=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
+        """Lance le programme manuellement via une entrée utilisateur sur Discord.
+
+        Args:
+            ctx (discord) : Référence au contexte du message entré par l'utilisateur.
+            args (str) : Ignoré. Présent uniquement au cas où l'utilisateur rentre des arguments superflus.
+        """
+
         await self.commande_utilisateur(ctx, zone)
 
 
@@ -273,8 +282,14 @@ class PositiviteCtrl(commands.Cog, AgeCtrl):
     liste_obj = list()  # Chemins pour le gif
 
     @commands.command(brief='Tests positifs quotidiens par âge contre la Covid-19', aliases=['positifs', 'positivite', 'positivite_age'])
-    async def positif(self, ctx, zone=None, *, content=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
-        """Lance le programme manuellement via une entrée utilisateur sur Discord."""
+    async def positif(self, ctx, zone=None, *, args=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
+        """Lance le programme manuellement via une entrée utilisateur sur Discord.
+
+        Args:
+            ctx (discord) : Référence au contexte du message entré par l'utilisateur.
+            args (str) : Ignoré. Présent uniquement au cas où l'utilisateur rentre des arguments superflus.
+        """
+
         await self.commande_utilisateur(ctx, zone)
 
 
@@ -313,7 +328,6 @@ if __name__ == '__main__':
         async def test(self):
             tuple_dpt = (self.DICT_CSV[self.criteres[0]])
             image = await self.main(self.criteres[0], tuple_dpt)
-            # Todo : Ajouter limite de requêtes
             return image
 
 
