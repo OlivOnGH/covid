@@ -14,7 +14,6 @@ from settings import SALON_INFO_COVID, MESSAGES_IDS_COVID, ID_BOT, ROLE_CS, PAND
 # PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
 
-DESCRIPTION =   'actualisé vers 20h-23h\n(du lundi au vendredi)'
 URL =           'https://solidarites-sante.gouv.fr/grands-dossiers/vaccin-covid-19/'
 PATH_DIR =      covid_age.PATH_DIR
 ADMIN_KEYWORD = 'ADMIN'
@@ -81,8 +80,8 @@ class AgeCtrl():
 
     async def publi_embed(self, image_path) -> None:
         """Edition du message."""
-        field = [(f'🗺️ Vous souhaitez un graphique pour un autre département ? Envoyez dans un salon ou directement à <@{ID_BOT}> :ok_hand:',
-                  (f'```!{self.NOM_COMMANDE} <numéro_département>``` \n'
+        field = [(f'🗺️ Vous souhaitez un graphique pour un autre département ? Envoyez dans un salon ou directement à',
+                  (f'<@{ID_BOT}> :ok_hand: ```!{self.NOM_COMMANDE} <numéro_département>``` \n'
                    f'Exemple : ```!{self.NOM_COMMANDE} 75```'
                    f'ou pour la France : ```!{self.NOM_COMMANDE}```'),
                   False),
@@ -93,7 +92,7 @@ class AgeCtrl():
                                       salon_id=SALON_INFO_COVID,
                                       message_id=self.MESSAGE_ID,
                                       title=self.TITRE_LONG,
-                                      description=DESCRIPTION,
+                                      description=self.DESCRIPTION,
                                       fields=field,
                                       url=URL,
                                       footer=f"Données du {self.jour}\nSanté publique France",
@@ -145,15 +144,15 @@ class AgeCtrl():
                 embed = views_embed.EmbedView(bot=self.bot,
                                               salon_id=SALON_INFO_COVID,
                                               message_id=self.MESSAGE_ID,
+                                              ctx=ctx,
                                               title=self.TITRE_LONG,
-                                              description=DESCRIPTION,
+                                              description=self.DESCRIPTION,
                                               fields=[('\u200b', contenu, False)],
                                               url=URL,
                                               footer=f"Données du {self.jour}\nSanté publique France",
                                               color_hex=self.COULEUR_HEX,
                                               file=(image, f'{self.TITRE_COURT}-{zone}.png'))
-                await embed.send()
-                del embed
+                await embed.send(); del embed
         except ValueError:
             raise ValueError(('La zone doit correspondre au numéro du département souhaité.'
                               f'Exemple : `!{self.NOM_COMMANDE} 75` ou pour le pays `!{self.NOM_COMMANDE} France`.'))
@@ -216,6 +215,7 @@ class VaccinCtrl(commands.Cog, AgeCtrl):
     TITRE_LONG = 'Vaccination par âge : en France · IDF · 92'  # Nom de l'embed
     TITRE_COURT = 'Vaccin_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
     GIF_NOM = 'Vaccination'  # Nom de l'image Gif
+    DESCRIPTION = 'actualisé vers 20h-23h\n(du lundi au vendredi)'
     MESSAGE_ID = MESSAGES_IDS_COVID[6]
     MINUTES_VERIF = {20, 50}
     ROTATION_TPS_GIF = 10  # en secondes
@@ -245,6 +245,7 @@ class PositiviteCtrl(commands.Cog, AgeCtrl):
     TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : en France · IDF · 92'  # Nom de l'embed
     TITRE_COURT = 'Positivite_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
     GIF_NOM = 'Positivite'  # Nom de l'image Gif
+    DESCRIPTION = 'actualisé vers 20h-23h'
     MESSAGE_ID = MESSAGES_IDS_COVID[7]
     MINUTES_VERIF = {22, 52}
     ROTATION_TPS_GIF = 10  # en secondes
@@ -281,6 +282,7 @@ if __name__ == '__main__':
 
         TITRE_COURT = 'Positivite_Age'
         TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : en France · IDF · 92'
+        DESCRIPTION = 'actualisé vers 20h-23h'
         MESSAGE_ID = MESSAGES_IDS_COVID[7]
         MINUTES_VERIF = {22, 52}
         ROTATION_TPS_GIF = 10  # en secondes
