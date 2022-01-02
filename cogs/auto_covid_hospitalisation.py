@@ -6,8 +6,8 @@ import pandas as pd
 
 from functions._local_datetime import local_dt
 from model import covid_hospitalisation
-from view import views_embed
-from settings import locale_value, ROLE_CS, SALON_INFO_COVID, MESSAGES_IDS_COVID  # Modifier le format des milliers  # locale_value = lambda x: '{:,}'.format(x).replace(',', ' ').replace('.0', ' ')
+from view import views_embed as ve
+from settings import locale_value, ROLE_CS, SALON_INFO_COVID, MESSAGES_IDS_COVID, PANDAS_SPF_SPECS  # Modifier le format des milliers  # locale_value = lambda x: '{:,}'.format(x).replace(',', ' ').replace('.0', ' ')
 
 
 TITRE = 'Hospitalisation'
@@ -66,17 +66,17 @@ class AutoHopital(commands.Cog):
                         result_dept += f'\n{phrase}'
 
                 # Initialisation de l'embed et modification du message
-                embed = views_embed.EmbedView(bot=self.bot,
-                                              salon_id=SALON_INFO_COVID,
-                                              message_id=obj.message_id,
-                                              title=f'Hospitalisations · {obj.zone_nom}',
-                                              description=DESCRIPTION,
-                                              fields=[(name, result_dept, False)],
-                                              url=URL_ANSM,
-                                              footer=f"Données du {obj.jour}\nSanté publique France",
-                                              image_path=obj.image_path,
-                                              color_hex=obj.color_hex)
-                await embed.edit(); del embed; del obj; await asyncio.sleep(30)
+                await ve.embed_edit_gc(bot=self.bot,
+                                       salon_id=SALON_INFO_COVID,
+                                       message_id=obj.message_id,
+                                       title=f'Hospitalisations · {obj.zone_nom}',
+                                       description=DESCRIPTION,
+                                       fields=[(name, result_dept, False)],
+                                       url=URL_ANSM,
+                                       footer=f"Données du {obj.jour}\nSanté publique France",
+                                       image_path=obj.image_path,
+                                       color_hex=obj.color_hex)
+                del obj; await asyncio.sleep(30)
             await asyncio.sleep(60 * 60 * 6)
         except Exception as err:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -91,7 +91,7 @@ class AutoHopital(commands.Cog):
         Note:
             La commande utilisateur est le nom de la fonction ou ses alias.
         '''
-        df = pd.read_csv(URL_DF, sep=';', parse_dates=['jour'], infer_datetime_format=True, low_memory=False)
+        df = pd.read_csv(URL_DF, infer_datetime_format=True, **PANDAS_SPF_SPECS)
         df.sort_values(by='jour', inplace=True)
         self.df = df
         await self.main()
@@ -103,7 +103,7 @@ class AutoHopital(commands.Cog):
         Note:
             La date des dernières données correspond au jour actuel.
         """
-        df = pd.read_csv(URL_DF, sep=';', parse_dates=['jour'], infer_datetime_format=True, low_memory=False)
+        df = pd.read_csv(URL_DF, infer_datetime_format=True, **PANDAS_SPF_SPECS)
         df.sort_values(by='jour', inplace=True)
 
         # On détermine si le jour des données du CSV (=la veille) correspond au jour recherché (=la veille).
