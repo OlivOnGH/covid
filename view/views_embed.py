@@ -13,16 +13,17 @@ from functions.a_threads import Threads
 @dataclass
 class EmbedView:
     '''Créer un embed.'''
-    bot:         object
+    bot:         discord
     salon_id:    int
-    message_id:  int
     title:       str
-    description: str
-    fields:      list
-    url:         str
-    footer:      str
-    image_path:  str
-    color_hex:   int
+    message_id:  int = None
+    description: str = '\u200b'
+    footer:      str = None
+    color_hex:   int = None
+    url:         str = None
+    fields:      list = None
+    image_path:  str = None
+    file:        tuple = None
 
     # def __post_init__(self):
     #     '''Convertir la couleur str() en int()'''
@@ -106,6 +107,40 @@ class EmbedView:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 await msg.edit(content=None, embed=embed_sans_image)
+                raise Exception(err, exc_type, fname, exc_tb.tb_lineno)
+            finally:
+                await asyncio.sleep(0.2)
+
+    async def send(self) -> None:
+        """Publie un nouveau message.
+
+        Returns:
+            None
+
+        Result:
+            Publie le message souhaité dans un salon défini.
+
+        Raises:
+            Exception générale.
+        """
+        msg = await self.bot.get_channel(self.salon_id)
+        async with msg.channel.typing():
+            embed_sans_image = await self.create_embed()  # Créer l'embed sans image
+            embed = deepcopy(embed_sans_image)  # Puis l'embed avec image
+
+            if self.image_path is not None:
+                image_url = Threads(self.upload(self.image_path))
+                embed.set_image(url=image_url())
+
+            if self.file is not None:
+                file_discord = discord.File(self.file[0], filename=self.file[1])
+
+            try:
+                await msg.send(content=None, embed=embed, file=file_discord)
+            except Exception as err:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                await msg.send(content=None, embed=embed_sans_image)
                 raise Exception(err, exc_type, fname, exc_tb.tb_lineno)
             finally:
                 await asyncio.sleep(0.2)
