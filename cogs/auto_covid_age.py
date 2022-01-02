@@ -58,7 +58,7 @@ class AgeCtrl():
         self.jour = modele.jour
         return image
 
-    async def main_multiples(self):
+    async def main_multiples(self) -> None:
         for key, val in self.dict_csv.items():
             image = await self.main(key, val)
             # Ajout à la liste des images PNG en vue de générer le Gif.
@@ -112,7 +112,7 @@ class AgeCtrl():
         setattr(self, 'image_path', fp_out)
         await self.publi_embed(fp_out)
 
-    async def commande_utilisateur(self, ctx, zone):
+    async def commande_utilisateur(self, ctx, zone) -> None:
         """Lance le programme manuellement via une entrée utilisateur sur Discord.
 
                 Args:
@@ -325,7 +325,7 @@ if __name__ == '__main__':
         def __init__(self, criteres):
             self.criteres = criteres
 
-        async def test(self):
+        async def test(self) -> Path:
             tuple_dpt = (self.DICT_CSV[self.criteres[0]])
             image = await self.main(self.criteres[0], tuple_dpt)
             return image
