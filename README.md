@@ -13,7 +13,7 @@
 * Gif avec rotation toutes les 10 secondes.
 
 ## Tests positifs
-![PositifAge](https://i.imgur.com/LU3Abkr.gif)
+![PositifAge](https://i.imgur.com/0cXGq7K.gif)
 * Zones : France, Île-de-France, Hauts-de-Seine.
 * Gif avec rotation toutes les 10 secondes.
 
