@@ -140,19 +140,30 @@ class AgeCtrl():
                               f'envoyez `!{self.NOM_COMMANDE} <numero_departement>`.\n' \
                               f'Par exemple `!{self.NOM_COMMANDE} 75`'
                 image = await self.main(zone_lettres, zone_tuple)
-                # Todo : Mettre dans la vue, ajouter limite de temps
+
+                # Todo : Ajouter limite de temps
                 embed = views_embed.EmbedView(bot=self.bot,
-                                              salon_id=SALON_INFO_COVID,
-                                              message_id=self.MESSAGE_ID,
                                               ctx=ctx,
-                                              title=self.TITRE_LONG,
-                                              description=self.DESCRIPTION,
+                                              title=f'!{self.NOM_COMMANDE}',
                                               fields=[('\u200b', contenu, False)],
                                               url=URL,
                                               footer=f"Données du {self.jour}\nSanté publique France",
                                               color_hex=self.COULEUR_HEX,
                                               file=(image, f'{self.TITRE_COURT}-{zone}.png'))
                 await embed.send(); del embed
+
+                # Todo : Logs anonymes
+                from settings import SALON_TEST_ADMIN
+                embed = views_embed.EmbedView(bot=self.bot,
+                                              salon_id=SALON_TEST_ADMIN,
+                                              title=f'!{self.NOM_COMMANDE}',
+                                              fields=[('\u200b', contenu, False)],
+                                              url=URL,
+                                              footer=f"Données du {self.jour}\nSanté publique France",
+                                              color_hex=self.COULEUR_HEX,
+                                              file=(image, f'{self.TITRE_COURT}-{zone}.png'))
+                await embed.send(); del embed
+
         except ValueError:
             raise ValueError(('La zone doit correspondre au numéro du département souhaité.'
                               f'Exemple : `!{self.NOM_COMMANDE} 75` ou pour le pays `!{self.NOM_COMMANDE} France`.'))
@@ -212,7 +223,7 @@ class VaccinCtrl(commands.Cog, AgeCtrl):
 
     bot: discord
 
-    TITRE_LONG = 'Vaccination par âge : en France · IDF · 92'  # Nom de l'embed
+    TITRE_LONG = 'Vaccination par âge : France · IDF · 92'  # Nom de l'embed
     TITRE_COURT = 'Vaccin_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
     GIF_NOM = 'Vaccination'  # Nom de l'image Gif
     DESCRIPTION = 'actualisé vers 20h-23h\n(du lundi au vendredi)'
@@ -242,7 +253,7 @@ class PositiviteCtrl(commands.Cog, AgeCtrl):
 
     bot: discord
 
-    TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : en France · IDF · 92'  # Nom de l'embed
+    TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : France · IDF · 92'  # Nom de l'embed
     TITRE_COURT = 'Positivite_Age'  # Nom de l'image PNG et utilisé dans certaines Exception
     GIF_NOM = 'Positivite'  # Nom de l'image Gif
     DESCRIPTION = 'actualisé vers 20h-23h'
@@ -281,7 +292,7 @@ if __name__ == '__main__':
     class TestCtrl(AgeCtrl):
 
         TITRE_COURT = 'Positivite_Age'
-        TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : en France · IDF · 92'
+        TITRE_LONG = 'Personnes testées et personnes positives quotidiennement par âge : France · IDF · 92'
         DESCRIPTION = 'actualisé vers 20h-23h'
         MESSAGE_ID = MESSAGES_IDS_COVID[7]
         MINUTES_VERIF = {22, 52}
