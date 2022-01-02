@@ -4,7 +4,7 @@ la transition pourrait ainsi être facilitée.
 """
 
 
-import asyncio, gc, os, sys
+import gc, os, sys
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -88,8 +88,7 @@ class EmbedView:
         Raises:
             Exception générale.
         """
-        upload_link = '-'
-        # On essaie d'envoyer l'image 5 fois au maximum
+        upload_link = '-'  # Todo
         try:
             if isinstance(image_path, str): image_path = Path(image_path)
             upload_link = await image_upload(image_path)
@@ -100,7 +99,6 @@ class EmbedView:
         else:
             print(upload_link)  # Todo : Logger
         return upload_link
-
 
     async def edit(self) -> None:
         """Edition du message.
@@ -119,7 +117,7 @@ class EmbedView:
             embed_sans_image = await self.create_embed()  # Créer l'embed sans image
             embed = deepcopy(embed_sans_image)                 # Puis l'embed avec image
 
-            if self.image_path is not None:
+            if self.image_path:
                 image_url = Threads(self.upload(self.image_path))
                 embed.set_image(url=image_url())
 
@@ -130,8 +128,6 @@ class EmbedView:
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 await msg.edit(content=None, embed=embed_sans_image)
                 raise Exception(err, exc_type, fname, exc_tb.tb_lineno)
-            finally:
-                await asyncio.sleep(0.2)
 
     async def send(self) -> None:
         """Publie un nouveau message.
@@ -154,11 +150,11 @@ class EmbedView:
             embed_sans_image = await self.create_embed()  # Créer l'embed sans image
             embed = deepcopy(embed_sans_image)  # Puis l'embed avec image
 
-            if self.image_path is not None:
+            if self.image_path:
                 image_url = Threads(self.upload(self.image_path))
                 embed.set_image(url=image_url())
 
-            if self.file is not None:
+            if self.file:
                 file_discord = discord.File(self.file[0], filename=self.file[1])
 
             try:
@@ -168,5 +164,3 @@ class EmbedView:
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 await channel.send(content=None, embed=embed_sans_image)
                 raise Exception(err, exc_type, fname, exc_tb.tb_lineno)
-            finally:
-                await asyncio.sleep(0.2)
