@@ -14,9 +14,10 @@ from settings import SALON_INFO_COVID, MESSAGES_IDS_COVID, ID_BOT, ROLE_CS, PAND
 # PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
 
-DESCRIPTION = 'actualisé vers 20h-23h\n(du lundi au vendredi)'
-URL =         'https://solidarites-sante.gouv.fr/grands-dossiers/vaccin-covid-19/'
-PATH_DIR =    covid_age.PATH_DIR
+DESCRIPTION =   'actualisé vers 20h-23h\n(du lundi au vendredi)'
+URL =           'https://solidarites-sante.gouv.fr/grands-dossiers/vaccin-covid-19/'
+PATH_DIR =      covid_age.PATH_DIR
+ADMIN_KEYWORD = 'ADMIN'
 
 
 @dataclass()
@@ -80,11 +81,14 @@ class AgeCtrl():
 
     async def publi_embed(self, image_path) -> None:
         """Edition du message."""
-        field = [('🗺️ Vous souhaitez un graphique pour un autre département ? Envoyez :',
-                  (f'```!{self.NOM_COMMANDE} <numéro_département>``` dans un salon ou directement à <@{ID_BOT}> :ok_hand:\n'
-                   f'Exemple : ```!{self.NOM_COMMANDE} 75```'),
+        field = [(f'🗺️ Vous souhaitez un graphique pour un autre département ? Envoyez dans un salon ou directement à <@{ID_BOT}> :ok_hand:',
+                  (f'```!{self.NOM_COMMANDE} <numéro_département>``` \n'
+                   f'Exemple : ```!{self.NOM_COMMANDE} 75```'
+                   f'ou pour la France : ```!{self.NOM_COMMANDE}```'),
                   False),
-                 ('⌛ Alternance', f'Gif avec alternance toutes les {self.ROTATION_TPS_GIF} secondes.', False)]
+                 ('⌛ Alternance géographique ici',
+                  f'Toutes les {self.ROTATION_TPS_GIF} secondes.',
+                  False)]
         embed = views_embed.EmbedView(bot=self.bot,
                                       salon_id=SALON_INFO_COVID,
                                       message_id=self.MESSAGE_ID,
@@ -119,19 +123,40 @@ class AgeCtrl():
                 Note:
                     La commande utilisateur est le nom de la fonction, pas d'alias ici.
                 """
-        if not zone and discord.utils.get(ctx.author.roles, id=ROLE_CS):
-            await self.launch_main_embed()
+        zone = str(zone).upper()
+        try:
+            if zone == ADMIN_KEYWORD and discord.utils.get(ctx.author.roles, id=ROLE_CS):
+                await self.launch_main_embed()
 
-        elif str(zone) in LISTE_DEPARTEMENTS_INT_STRF:
-            tuple_dpt = (self.DICT_CSV['dep'][0], zone, '#ebfffe', 'dans', str(zone))
-            image = await self.main('dep', tuple_dpt)
-            # Todo : Mettre dans la vue, ajouter limite de temps
-            await ctx.send(content=f'Voici l\'info pour le {zone}',
-                           file=discord.File(image, filename=f'{self.TITRE_COURT}-{zone}.png'))
-
-        else:
+            else:
+                if zone in LISTE_DEPARTEMENTS_INT_STRF:
+                    zone_lettres = 'dep'
+                    zone_tuple = (self.DICT_CSV['dep'][0], zone, self.DICT_CSV['dep'][2], 'dans', str(zone))
+                    contenu = f'Voici l\'info pour : {zone}'
+                else:  # France
+                    zone_lettres = 'fra'
+                    zone_tuple = (self.DICT_CSV['fra'])
+                    contenu = f'Voici l\'info pour la France.\n' \
+                              f'Si vous souhaitez un département, ' \
+                              f'envoyez `!{self.NOM_COMMANDE} <numero_departement>`.\n' \
+                              f'Par exemple `!{self.NOM_COMMANDE} 75`'
+                image = await self.main(zone_lettres, zone_tuple)
+                # Todo : Mettre dans la vue, ajouter limite de temps
+                embed = views_embed.EmbedView(bot=self.bot,
+                                              salon_id=SALON_INFO_COVID,
+                                              message_id=self.MESSAGE_ID,
+                                              title=self.TITRE_LONG,
+                                              description=DESCRIPTION,
+                                              fields=[('\u200b', contenu, False)],
+                                              url=URL,
+                                              footer=f"Données du {self.jour}\nSanté publique France",
+                                              color_hex=self.COULEUR_HEX,
+                                              file=(image, f'{self.TITRE_COURT}-{zone}.png'))
+                await embed.send()
+                del embed
+        except ValueError:
             raise ValueError(('La zone doit correspondre au numéro du département souhaité.'
-                              f'Exemple : `!{self.NOM_COMMANDE} 75`'))
+                              f'Exemple : `!{self.NOM_COMMANDE} 75` ou pour le pays `!{self.NOM_COMMANDE} France`.'))
 
     @timer(Path(__file__).stem)
     async def check_update(self) -> None:
@@ -207,15 +232,9 @@ class VaccinCtrl(commands.Cog, AgeCtrl):
     liste_obj = list()  # Chemins pour le gif
 
     @commands.command(brief='Vaccination par âge contre la Covid-19', aliases=['vaccin_age', 'vaccination'])
-    async def vaccin(self, ctx, zone=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
+    async def vaccin(self, ctx, zone=None, *, content=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
         """Lance le programme manuellement via une entrée utilisateur sur Discord."""
         await self.commande_utilisateur(ctx, zone)
-
-    async def test(self):
-        tuple_dpt = (self.DICT_CSV[self.criteres[0]][0], self.criteres[1], '#ebfffe', 'dans', str(self.criteres[1]))
-        image = await self.main(self.criteres[0], tuple_dpt)
-        # Todo : Ajouter limite de requêtes
-        return image
 
 
 @dataclass()
@@ -242,7 +261,7 @@ class PositiviteCtrl(commands.Cog, AgeCtrl):
     liste_obj = list()  # Chemins pour le gif
 
     @commands.command(brief='Tests positifs quotidiens par âge contre la Covid-19', aliases=['positifs', 'positivite', 'positivite_age'])
-    async def positif(self, ctx, zone=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
+    async def positif(self, ctx, zone=None, *, content=None) -> None:  # @commands.check_any(commands.has_role(ROLE_CS))
         """Lance le programme manuellement via une entrée utilisateur sur Discord."""
         await self.commande_utilisateur(ctx, zone)
 
@@ -279,7 +298,7 @@ if __name__ == '__main__':
             self.criteres = criteres
 
         async def test(self):
-            tuple_dpt = (self.DICT_CSV[self.criteres[0]][0], self.criteres[1], '#ebfffe', 'dans', str(self.criteres[1]))
+            tuple_dpt = (self.DICT_CSV[self.criteres[0]])
             image = await self.main(self.criteres[0], tuple_dpt)
             # Todo : Ajouter limite de requêtes
             return image
