@@ -12,41 +12,57 @@ from functions._timer import timer
 from settings import locale_value  # Modifier le format des milliers  # locale_value = lambda x: '{:,}'.format(x).replace(',', ' ').replace('.0', ' ')
 
 
+# https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html
+# https://matplotlib.org/stable/gallery/color/named_colors.html
+
 TITLE = 'Hospitalisation'
 IMAGE_PATH_DIR = os.getcwd() if __name__ == '__main__' else Path('./data/temp/vaccination')
 DATE_FIN = '2022-06-30'
 
 DICT_COORD_Y = {
-    'hosp': {'libelle_long': 'Hospitalisations',
+    'hosp': {'libelle_long':  'Hospitalisations',
              'libelle_long2': 'Hospitalisations',
-             'couleur':      'blue',
-             'linestyle':    '-',
-             'linewidth':    1,
-             'ax':           0},
-    'SSR_USLD': {'libelle_long': 'SSR / USLD (covid long)',
+             'couleur':       'blue',
+             'linestyle':     '-',
+             'linewidth':     1,
+             'ax':            0},
+    'HospConv': {'libelle_long': 'Hospitalisation conventionnelle',
+                 'libelle_long2': 'Hospitalisation conventionnelle',
+                 'couleur': 'olive',
+                 'linestyle': (0, (3, 1, 1, 1, 1, 1)),  # densely dashdotdotted
+                 'linewidth': 1,
+                 'ax': 0},
+    'SSR_USLD': {'libelle_long':  'SSR / USLD (covid long)',
                  'libelle_long2': 'Soins de Suite et de Réadaptation (SSR) ou Unités de Soins de Longue Durée (USLD)',
-                 'couleur':      'purple',
-                 'linestyle':    '--',
-                 'linewidth':    1,
-                 'ax':           0},
-    'rea': {'libelle_long': 'Réanimations ou soins intensifs',
+                 'couleur':       'purple',
+                 'linestyle':     '--',
+                 'linewidth':     1,
+                 'ax':            0},
+    'rea': {'libelle_long':  'Réanimations ou soins intensifs',
             'libelle_long2': 'Réanimations ou soins intensifs',
-            'couleur':      'red',
-            'linestyle':    (0, (1, 1)),
-            'linewidth':    2.5,
-             'ax':          0},
-    'rad': {'libelle_long': 'Retours à domicile',
+            'couleur':       'red',
+            'linestyle':     (0, (1, 1)),  # dotted
+            'linewidth':     2.5,
+             'ax':           0},
+    'autres': {'libelle_long': 'Hospitalisations dans un autre type de service',
+               'libelle_long2': 'Hospitalisations dans un autre type de service',
+               'couleur': 'dimgrey',
+               'linestyle': (0, (3, 1, 1, 1)),  # densely dashdotted
+               'linewidth': 1,
+               'ax': 0},
+    ######################### axe différent #########################
+    'rad': {'libelle_long':   'Retours à domicile',
              'libelle_long2': 'Retours à domicile',
-            'couleur':      'green',
-            'linestyle':    '--',
-            'linewidth':    1,
-            'ax':           1},
-    'dc': {'libelle_long': 'Décès à l\'hôpital',
+            'couleur':        'green',
+            'linestyle':      '--',
+            'linewidth':      1,
+            'ax':             1},
+    'dc': {'libelle_long':  'Décès à l\'hôpital',
            'libelle_long2': 'Décès à l\'hôpital',
-           'couleur':      'black',
-           'linestyle':    '-.',
-           'linewidth':    1,
-           'ax':           1},
+           'couleur':       'black',
+           'linestyle':     '-.',
+           'linewidth':     1,
+           'ax':            1},
 }
 
 @dataclass()
@@ -58,6 +74,8 @@ class Hopital:
     color_hex:   int = field(init=False)
     jour =       str()
     image_path = str()
+
+    __slots__ = '__dict__',
 
     def __post_init__(self):
         '''Convertir la couleur str() en int()'''
@@ -141,7 +159,7 @@ class Hopital:
                 _.set(ylabel='Nombre de personnes')
 
             # Emplacement de la légende pour chaque graphique
-            [ax[plot].legend(loc=loc) for plot, loc in [(0, 'best'), (1, 'upper left')]]
+            [ax[plot].legend(loc=loc) for plot, loc in [(0, 'center left'), (1, 'upper left')]]
 
             # Annoter la dernière valeur connue dans le 1er plot.
             # Ajouter le signe +/- pour les variations
@@ -156,12 +174,11 @@ class Hopital:
                                                         xytext=(8, -2), xycoords='data', textcoords='offset points',
                                                         color=dict_coord_y_valeurs['couleur'])
 
-            # Ajouter les données pour le texte de l'embed
-            for libelle_court, libelle_long in (('HospConv', 'Hospitalisation Conventionnelle'),
-                                                ('autres', 'Hospitalisations dans un autre type de service')):
-                if libelle_court not in dict_coord_y: dict_coord_y[libelle_court] = dict()
-                dict_coord_y[libelle_court].update({'derniere_valeur': int(group[libelle_court].iat[-1])})
-                dict_coord_y[libelle_court]['libelle_long2'] = libelle_long
+            # # Ajouter les données pour le texte de l'embed
+            # for libelle_court, libelle_long in (('autres', 'Hospitalisations dans un autre type de service'),):
+            #     if libelle_court not in dict_coord_y: dict_coord_y[libelle_court] = dict()
+            #     dict_coord_y[libelle_court].update({'derniere_valeur': int(group[libelle_court].iat[-1])})
+            #     dict_coord_y[libelle_court]['libelle_long2'] = libelle_long
 
             # Nom du graphique et enregistrement
             nom_graphique = f'Hospitalisation-{self.zone_nom}'
@@ -171,7 +188,7 @@ class Hopital:
             if not os.path.exists(IMAGE_PATH_DIR):  os.mkdir(IMAGE_PATH_DIR)
             if not os.path.exists(self.image_path): open(self.image_path, 'x')
 
-            fig.savefig(self.image_path)
+            fig.savefig(self.image_path, bbox_inches='tight')
             setattr(self, 'dict_coord_y_', dict_coord_y)
 
         except Exception as err:
@@ -199,3 +216,4 @@ if __name__ == '__main__':
     import asyncio
     asyncio.run(hosp_92())
     print(f'{hosp_92.dict_coord_y_ = }')
+    print(hosp_92.jour)
