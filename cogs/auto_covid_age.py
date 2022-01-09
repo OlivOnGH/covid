@@ -21,6 +21,8 @@ ADMIN_KEYWORD = 'ADMIN'
 @dataclass()
 class AgeCtrl():
 
+    __slots__ = '__dict__',
+
     async def main(self, key, val) -> None:
         """Génère les DF et les objets, puis lance le traitement des DF et des graphiques.
 
@@ -65,6 +67,7 @@ class AgeCtrl():
             image = await self.main(key, val)
             # Ajout à la liste des images PNG en vue de générer le Gif.
             self.liste_obj.append(image)
+            await asyncio.sleep(30)
 
     async def creer_gif(self, path_=PATH_DIR) -> Path:
         """Réunir les PNG en un seul Gif."""
