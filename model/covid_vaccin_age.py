@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker
 import matplotlib.dates as mdates
 
-from settings import locale, MESSAGES_IDS_COVID, PANDAS_SPF_SPECS
+from settings import locale_float_digits, MESSAGES_IDS_COVID, PANDAS_SPF_SPECS
 # PANDAS_SPF_SPECS = {'sep': ';', 'parse_dates': ['jour'], 'low_memory': False}
 
 
@@ -23,6 +23,8 @@ class AgeModele(ABC):
     particule:    str
     localisation: str
     color_hex:    int = field(init=False)
+
+    __slots__ = '__dict__',
 
     def __post_init__(self):
         '''Convertir la couleur str() en int()'''
@@ -79,7 +81,8 @@ class AgeModele(ABC):
 
         # Des caractéristiques générales du tableau
         fig.suptitle(f'{self.TITRE_GRAPH}\n'
-                     f'{self.particule} {self.localisation} depuis 45 jours jusqu\'au {pd.Timestamp(df["jour"].max()).strftime("%A %x")}',
+                     f'depuis 45 jours jusqu\'au {pd.Timestamp(df["jour"].max()).strftime("%A %x")}\n'
+                     f'{self.particule} {self.localisation}',
                      fontsize=14)
         fig.set_facecolor(self.color_str)
 
@@ -96,9 +99,7 @@ class AgeModele(ABC):
         # Mettre le 1er plot dans un cadre formatté différemment pour le démarquer, car il regroupe tous les âges.
         [axes[0].spines[elem].set_linewidth(3) for elem in ['bottom', 'top', 'left', 'right']]
 
-        # Formule pour formatter les pourcentages ou les séparateurs de milliers
-        if self.FMT_POURCENTAGE is True:   locale_value = lambda x: f'{str(x).replace(".", ",")}%'
-        else:                              from settings import locale_value
+
 
         def plotter_annoter(**kwargs) -> None:
             '''Trace et annote chaque plot.
@@ -115,6 +116,8 @@ class AgeModele(ABC):
                 '''Annoter les premières et dernières valeurs.'''
                 for date_ in [0, -1]:
                     var_couv = df_rev[df_rev.columns[m]].iat[date_]
+                    # Formule pour formatter les pourcentages ou les séparateurs de milliers
+                    locale_value = lambda x: locale_float_digits(round(x, 0), 0) + ('%' if self.FMT_POURCENTAGE else '')
                     ax.annotate(locale_value(var_couv),
                                 xy=(mdates.date2num(pd.Timestamp(df['jour'].iat[date_])), var_couv),
                                 xytext=xytext, xycoords='data', textcoords='offset points', color=couleur)
@@ -160,7 +163,7 @@ class AgeModele(ABC):
                 ax.xaxis.set_major_formatter(formatter)
 
                 # Séparateur de millier
-                ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, loc: locale.format_string('%d', x, 1)))
+                ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, loc: locale_float_digits(x, 0)))
 
                 def title_majorticklabel_plot_annot(dictionnaire):
                     """"""
@@ -279,8 +282,9 @@ if __name__ == '__main__':
     # Vaccin
     URL_DF = 'https://www.data.gouv.fr/fr/datasets/r/54dd5f8d-1e2e-4ccb-8fb8-eac68245befd'
     df = pd.read_csv(URL_DF, infer_datetime_format=True, **PANDAS_SPF_SPECS)
-    fr = VaccinModele(df, '#70E6E4', 'en', 'France')
-    asyncio.run(fr())
+    vac = VaccinModele(df, '#70E6E4', 'en', 'France')
+    asyncio.run(vac())
+    print(vac.jour, vac.image_path)
 
     # Positifs aux tests
     URL_DF = 'https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675'
@@ -288,3 +292,4 @@ if __name__ == '__main__':
     df = df[df['dep'] == '92']
     positivite = PositiviteModele(df, '#fed6ff', 'dans les', 'Hauts-de-Seine')
     asyncio.run(positivite())
+    print(positivite.jour, positivite.image_path)
