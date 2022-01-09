@@ -8,21 +8,21 @@
 * Le code tend au respect du patron de conception MVC (Modèle-Vue-Contrôleur). Cependant, une partie de la vue est combinée avec le contrôleur à cause de contraintes liées à la bibliothèque `discord.py`.
 
 ## Vaccination
-![VaccinAge](https://i.imgur.com/b4uOpTe.gif)
+![VaccinAge]()
 * Zones : France, Île-de-France, Hauts-de-Seine.
 * Gif avec rotation toutes les 10 secondes.
 
 ## Tests positifs
-![PositifAge](https://i.imgur.com/0cXGq7K.gif)
+![PositifAge](https://i.imgur.com/lOqaAPO.gif)
 * Zones : France, Île-de-France, Hauts-de-Seine.
 * Gif avec rotation toutes les 10 secondes.
 
 ## Hospitalisations
-![Hopital92](https://user-images.githubusercontent.com/76781017/147862069-25574da8-3681-4a8a-840b-fd7ae21f6495.png)
+![Hopital92](https://user-images.githubusercontent.com/76781017/148699541-fb735f00-412d-46ae-b6da-d74614596488.png)
 
-![HopitalIDF](https://user-images.githubusercontent.com/76781017/147862066-2a1d9b2a-ac11-4418-bf99-f0c984e57842.png)
+![HopitalIDF](https://user-images.githubusercontent.com/76781017/148699533-d15ec612-3b49-4914-8c98-b75c4923227c.png)
 
-![HopitalFR](https://user-images.githubusercontent.com/76781017/147862061-6e56d954-67b5-45d3-8b45-a4513627ba1e.png)
+![HopitalFR](https://user-images.githubusercontent.com/76781017/148699522-dfdda7fb-5593-4540-a434-76bce0e3e163.png)
 
 # Données du quartier
 
@@ -34,6 +34,6 @@
 
 ![Quartier](https://user-images.githubusercontent.com/76781017/137624338-3f09835f-0830-4064-a9d9-808688a7cc61.png)
 
-![Prix carburants](https://user-images.githubusercontent.com/76781017/147877612-b5621db7-4b69-4e61-ae9a-0273957dffee.png)
+![Prix carburants](https://user-images.githubusercontent.com/76781017/148699497-a6e534d2-ae64-4ece-ab1c-f8ad3d6bff61.png)
 
 
