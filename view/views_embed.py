@@ -84,8 +84,9 @@ class EmbedView:
     thumbnail_keep:       bool = False
     thumbnail_bdd_table:  str = 'updates'
     file:                 tuple = None
+    field_linebreak:      bool = True
 
-    __slots__ = '__dict__', 
+    __slots__ = '__dict__',
 
     # def __post_init__(self):
     #     '''Convertir la couleur str() en int()'''
@@ -107,7 +108,8 @@ class EmbedView:
                                   url=self.url,
                                   color=self.color_hex)
             if self.fields:  # [(Name, Value, True/False)]
-                [self.embed.add_field(name=f'**{self.n}**', value=f'{self.v}\n\u200b', inline=self.i) for self.n, self.v, self.i in self.fields]
+                linebreak = '\n\u200b'
+                [self.embed.add_field(name=f'**{self.n}**', value=f'{self.v}{linebreak if self.field_linebreak else ""}', inline=self.i) for self.n, self.v, self.i in self.fields]
             self.embed.set_footer(text=self.footer)
             self.embed.timestamp = local_dt_sync()
             return self.embed
