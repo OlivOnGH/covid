@@ -8,25 +8,25 @@
 * Le code tend au respect du patron de conception MVC (Modèle-Vue-Contrôleur). Cependant, une partie de la vue est combinée avec le contrôleur à cause de contraintes liées à la bibliothèque `discord.py`.
 
 ## Vaccination
-![VaccinAge](https://i.imgur.com/gFqxqKF.gif)
+![VaccinAge](https://i.imgur.com/jAuqk54.gif)
 * Zones : France, Île-de-France, Hauts-de-Seine.
 * Gif avec rotation toutes les 10 secondes.
 
 ## Tests positifs
-![PositifAge](https://i.imgur.com/fkOzzv2.gif)
+![PositifAge](https://i.imgur.com/SY2l0Jk.gif)
 * Zones : France, Île-de-France, Hauts-de-Seine.
 * Gif avec rotation toutes les 10 secondes.
 
 ## Hospitalisations
-![Hopital92](https://user-images.githubusercontent.com/76781017/148901435-3a09b736-5a27-420a-b2d6-ea2bcc2dc4b7.png)
+![Hopital92](https://user-images.githubusercontent.com/76781017/154817476-ea787f58-7246-4c1f-a1b6-9e1f141365bb.png)
 
-![HopitalIDF](https://user-images.githubusercontent.com/76781017/148901326-8521e49a-730f-4301-b67e-61ac18b12c13.png)
+![HopitalIDF](https://user-images.githubusercontent.com/76781017/154817460-f2d2840c-be2f-4d81-adbe-839cfc2766fa.png)
 
-![HopitalFR](https://user-images.githubusercontent.com/76781017/148901280-d3d12a5a-21ec-4db3-9fda-f0f57d7873e7.png)
+![HopitalFR](https://user-images.githubusercontent.com/76781017/154817447-91cc0554-78bc-4f65-83a1-fab5bb3779e8.png)
 
 # Données du quartier
 
-* Présentation des informations de quartier à publication horaire ou quotidienne.
+* Présentation des informations de quartier à publication régulière (toutes les quelques minutes, horaire ou quotidienne).
 * Le code correspondant n'est pas publié.
 * Les informations proviennent entre autres d'API.
 
@@ -36,4 +36,6 @@
 
 ![Prix carburants](https://user-images.githubusercontent.com/76781017/148901820-ffcd1659-d307-4585-a284-d816f185d241.png)
 
+Message de prévention déclenché uniquement si les rafales sont supérieures à 50 km/h le jour-même et le lendemain :
+![Rafales](https://user-images.githubusercontent.com/76781017/154817781-82a73b88-86a8-45fd-85bd-63d4cb21db9c.png)
 
